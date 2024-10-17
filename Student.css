@@ -1,0 +1,64 @@
+body {
+    background: url('images/background.png') no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Navigation for the changes of table */
+.nav-link{
+    color: rgb(0, 0, 0) !important;
+    background-color: #ffffff;
+    margin: 2%;
+    font-size: large;
+    align-items: start;
+    border-radius: 100%;
+
+    
+
+}
+
+.nav-link:hover {
+    color: darkgray !important; 
+    background-color: white;
+}
+
+/* End of the navigation */
+
+
+/*table */
+.container-fluid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.Border_Table {
+    background-color: rgba(255, 255, 255, 0.8); 
+    border-radius: 1%; 
+    box-shadow: 0 0 1% rgba(0, 0, 0, 0.1); 
+    padding: 5%;
+    width: 90%;
+    max-width: 1200px;
+}
+
+.table-wrapper {
+    max-height: 450px;
+    overflow-y: scroll;
+    scrollbar-width: none;
+}
+
+.table-wrapper::-webkit-scrollbar {
+    display: none; 
+}
+
+.table {
+    margin-top: 2%; }
+/* end of the table */
+
+.star {
+    color: gold;
+}

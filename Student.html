@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Review Dashboard</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="Student.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:;">
+</head>
+<body>
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <div class="Border_Table">
+            <nav class="nav nav-pills nav-justified">
+                <a class="nav-link" href="Homepage.html">Dashboard</a>
+                <a class="nav-link" href="Student.html">Students</a>
+                <a class="nav-link" href="Appointment.html">Appointment</a>
+            </nav>
+            <div class="table-wrapper">
+                <table class="table table-bordered mt-4" id="studentTable">
+                    <thead>
+                        <tr>
+                            <th>Students</th>
+                            <th>Student ID</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Average Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWg0UXAOY6QhJC8iMh0Rf0Eb-ZSwWf_h0",
+            authDomain: "payapa-27f92.firebaseapp.com",
+            databaseURL: "https://payapa-27f92-default-rtdb.firebaseio.com",
+            projectId: "payapa-27f92",
+            storageBucket: "payapa-27f92.appspot.com",
+            messagingSenderId: "827106040341",
+            appId: "1:827106040341:web:0bb3c39e3f40a7b7774c1c",
+            measurementId: "G-VNQGLJ5KLK"
+        };
+      
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function fetchStudents() {
+            const querySnapshot = await db.collection("students").get();
+            const tableBody = document.querySelector("#studentTable tbody");
+            tableBody.innerHTML = ""; 
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const newRow = document.createElement("tr");
+
+                const studentName = `${data.firstName || "None"} ${data.lastName || "None"}`;
+                const studentID = data.studentID || "None";
+                const course = data.course || "None";
+                const status = data.status || "None";
+                const averageStatus = generateStars(data.averageStatus || 0);
+
+                newRow.innerHTML = `
+                    <td>${studentName}</td>
+                    <td>${studentID}</td>
+                    <td>${course}</td>
+                    <td>${status}</td>
+                    <td>${averageStatus}</td>
+                `;
+
+                tableBody.appendChild(newRow);
+            });
+        }
+
+        function generateStars(rating) {
+            let stars = "";
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<i class="fas fa-star star"></i>';
+                } else {
+                    stars += '<i class="far fa-star star"></i>';
+                }
+            }
+            return stars;
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchStudents);
+    </script>
+</body>
+</html>

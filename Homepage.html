@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Review Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="Homepage.css">
+</head>
+<body>
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <div class="Border_Table">
+            <nav class="nav nav-pills nav-justified">
+                <a class="nav-link" href="Homepage.html">Dashboard</a>
+                <a class="nav-link" href="Student.html">Students</a>
+                <a class="nav-link" href="Appointment.html">Appointment</a>
+            </nav>
+            <div class="table-wrapper">
+                <table id="student-table" class="table table-bordered mt-4">
+                    <thead>
+                        <tr>
+                            <th>Students</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Student data will be populated here by Firebase -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Add Student Form -->
+            <form id="addStudentForm" class="mt-4">
+                <div class="form-row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="newFirstName" placeholder="First Name" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="newLastName" placeholder="Last Name" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="newNickname" placeholder="Nickname">
+                    </div>
+                </div>
+                <div class="form-row mt-2">
+                    <div class="col">
+                        <input type="text" class="form-control" id="newGender" placeholder="Gender" required>
+                    </div>
+                    <div class="col">
+                        <input type="number" class="form-control" id="newAge" placeholder="Age" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="newCourse" placeholder="Course" required>
+                    </div>
+                </div>
+                <div class="form-row mt-2">
+                    <div class="col">
+                        <input type="email" class="form-control" id="newEmail" placeholder="Email" required>
+                    </div>
+                    <div class="col">
+                        <input type="url" class="form-control" id="newPhotoUrl" placeholder="Photo URL">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Add Student</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for displaying student details -->
+    <div class="modal fade" id="studentModal" tabindex="-1" aria-labelledby="studentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentModalLabel">Student Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>First Name:</strong> <span id="student-firstName"></span></p>
+                    <p><strong>Last Name:</strong> <span id="student-lastName"></span></p>
+                    <p><strong>Nickname:</strong> <span id="student-nickname"></span></p>
+                    <p><strong>Gender:</strong> <span id="student-gender"></span></p>
+                    <p><strong>Age:</strong> <span id="student-age"></span></p>
+                    <p><strong>Course:</strong> <span id="student-course"></span></p>
+                    <p><strong>Email:</strong> <span id="student-email"></span></p>
+                    <img id="student-photoUrl" src="" alt="Student Photo" class="img-fluid">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="saveStudentDetails">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Firebase Configuration and Initialization -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWg0UXAOY6QhJC8iMh0Rf0Eb-ZSwWf_h0",
+            authDomain: "payapa-27f92.firebaseapp.com",
+            databaseURL: "https://payapa-27f92-default-rtdb.firebaseio.com",
+            projectId: "payapa-27f92",
+            storageBucket: "payapa-27f92.appspot.com",
+            messagingSenderId: "827106040341",
+            appId: "1:827106040341:web:0bb3c39e3f40a7b7774c1c",
+            measurementId: "G-VNQGLJ5KLK"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to get student data from Firestore
+        async function getStudentData() {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            const table = document.getElementById("student-table").getElementsByTagName('tbody')[0];
+            table.innerHTML = ""; // Clear existing rows
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const newRow = table.insertRow();
+                const cell1 = newRow.insertCell(0);
+                const cell2 = newRow.insertCell(1);
+                cell1.textContent = data.firstName + " " + data.lastName;
+                cell2.innerHTML = `<a href="#" class="student-details" data-id="${doc.id}">student details</a> 
+                                   <button class="btn btn-danger btn-sm delete-student" data-id="${doc.id}">Delete</button>`;
+            });
+            // Add event listeners for the student details links
+            document.querySelectorAll('.student-details').forEach(item => {
+                item.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const studentId = event.target.getAttribute('data-id');
+                    const studentDoc = await getDoc(doc(db, "users", studentId));
+                    if (studentDoc.exists()) {
+                        const studentData = studentDoc.data();
+                        document.getElementById('student-firstName').textContent = studentData.firstName;
+                        document.getElementById('student-lastName').textContent = studentData.lastName;
+                        document.getElementById('student-nickname').textContent = studentData.nickname;
+                        document.getElementById('student-gender').textContent = studentData.gender;
+                        document.getElementById('student-age').textContent = studentData.age;
+                        document.getElementById('student-course').textContent = studentData.course;
+                        document.getElementById('student-email').textContent = studentData.email;
+                        document.getElementById('student-photoUrl').src = studentData.photoUrl;
+                        $('#studentModal').modal('show');
+                        document.getElementById('saveStudentDetails').setAttribute('data-id', studentId);
+                    }
+                });
+            });
+            // Add event listeners for the delete buttons
+            document.querySelectorAll('.delete-student').forEach(item => {
+                item.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const studentId = event.target.getAttribute('data-id');
+                    await deleteDoc(doc(db, "users", studentId));
+                    getStudentData(); // Refresh the student list
+                });
+            });
+        }
+
+        // Event listener for saving student details
+        document.getElementById('saveStudentDetails').addEventListener('click', async () => {
+            const studentId = document.getElementById('saveStudentDetails').getAttribute('data-id');
+            const updatedData = {
+                firstName: document.getElementById('student-firstName').textContent,
+                lastName: document.getElementById('student-lastName').textContent,
+                nickname: document.getElementById('student-nickname').textContent,
+                gender: document.getElementById('student-gender').textContent,
+                age: document.getElementById('student-age').textContent,
+                course: document.getElementById('student-course').textContent,
+                email: document.getElementById('student-email').textContent,
+                photoUrl: document.getElementById('student-photoUrl').src
+            };
+
+            await updateDoc(doc(db, "users", studentId), updatedData);
+            $('#studentModal').modal('hide');
+            getStudentData(); // Refresh the student list
+        });
+
+        // Event listener for adding a new student
+        document.getElementById('addStudentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const newStudent = {
+                firstName: document.getElementById('newFirstName').value,
+                lastName: document.getElementById('newLastName').value,
+                nickname: document.getElementById('newNickname').value,
+                gender: document.getElementById('newGender').value,
+                age: document.getElementById('newAge').value,
+                course: document.getElementById('newCourse').value,
+                email: document.getElementById('newEmail').value,
+                photoUrl: document.getElementById('newPhotoUrl').value
+            };
+
+            await addDoc(collection(db, "users"), newStudent);
+            document.getElementById('addStudentForm').reset();
+            getStudentData(); // Refresh the student list
+        });
+
+        // Call getStudentData when the page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            getStudentData();
+        });
+    </script>
+</body>
+</html>

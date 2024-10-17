@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="Appointment.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav nav-pills nav-justified mb-4">
+            <a class="nav-link" href="Homepage.html">Dashboard</a>
+            <a class="nav-link" href="Student.html">Students</a>
+            <a class="nav-link active" href="Appointment.html">Appointment</a>
+        </nav>
+
+
+
+        <!-- Table for displaying appointments -->
+        <table class="table table-bordered table-custom">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Concern</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="appointmentTableBody">
+                <!-- Appointment rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for showing details and scheduling an appointment -->
+    <div id="responseModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="studentName"></h2>
+            <p><strong>Reason for Stress:</strong> <span id="reasonForStress"></span></p>
+
+            <!-- Button to show the appointment form -->
+            <button id="setAppointmentBtn" class="btn btn-primary">Set Appointment</button>
+
+            <!-- Schedule Appointment Form (Hidden initially) -->
+            <div id="scheduleForm">
+                <h4>Schedule an Appointment</h4>
+                <form id="appointmentForm">
+                    <div class="form-group">
+                        <label for="appointmentDate">Date:</label>
+                        <input type="date" id="appointmentDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="appointmentTime">Time:</label>
+                        <input type="time" id="appointmentTime" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="appointmentMessage">Message:</label>
+                        <textarea id="appointmentMessage" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit Appointment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Firebase Configuration and Initialization -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+        // Your Firebase configuration (ensure this matches your project settings)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWg0UXAOY6QhJC8iMh0Rf0Eb-ZSwWf_h0",
+            authDomain: "payapa-27f92.firebaseapp.com",
+            databaseURL: "https://payapa-27f92-default-rtdb.firebaseio.com",
+            projectId: "payapa-27f92",
+            storageBucket: "payapa-27f92.appspot.com",
+            messagingSenderId: "827106040341",
+            appId: "1:827106040341:web:0bb3c39e3f40a7b7774c1c",
+            measurementId: "G-VNQGLJ5KLK"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const appointmentTableBody = document.getElementById('appointmentTableBody');
+        const responseModal = document.getElementById('responseModal');
+        const closeModal = document.querySelector('.close');
+        const studentNameElem = document.getElementById('studentName');
+        const reasonForStressElem = document.getElementById('reasonForStress');
+        const appointmentForm = document.getElementById('appointmentForm');
+        const scheduleForm = document.getElementById('scheduleForm');
+        const setAppointmentBtn = document.getElementById('setAppointmentBtn');
+        const appointmentDate = document.getElementById('appointmentDate');
+        const appointmentTime = document.getElementById('appointmentTime');
+        const appointmentMessage = document.getElementById('appointmentMessage');
+
+        let currentStudentId = null;
+
+        // Fetch and display appointments from Firebase
+        async function loadAppointments() {
+            const appointmentsSnapshot = await getDocs(collection(db, "appointments"));
+            appointmentTableBody.innerHTML = ''; // Clear the table first
+
+            appointmentsSnapshot.forEach(doc => {
+                const appointmentData = doc.data();
+
+                // Extract fields from appointment data
+                const firstName = appointmentData.firstName || "Unknown";
+                const concern = appointmentData.concern || "No concerns mentioned.";
+                const reasonForStress = appointmentData.reasonForStress || "No reason for stress mentioned.";
+                const studentId = doc.id;
+
+                // Create table row for student data
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${firstName}</td>
+                    <td>${concern}</td>
+                    <td><button class="btn btn-sm btn-primary message-btn" data-id="${studentId}" data-reason="${reasonForStress}" data-name="${firstName}">Message</button></td>
+                `;
+                appointmentTableBody.appendChild(row);
+            });
+
+            // Add event listeners to message buttons
+            document.querySelectorAll('.message-btn').forEach(button => {
+                button.addEventListener('click', event => {
+                    const studentId = event.target.getAttribute('data-id');
+                    const studentName = event.target.getAttribute('data-name');
+                    const reasonForStress = event.target.getAttribute('data-reason');
+                    
+                    // Set modal content
+                    currentStudentId = studentId;
+                    studentNameElem.textContent = studentName;
+                    reasonForStressElem.textContent = reasonForStress;
+
+                    // Ensure the schedule form is hidden when the modal opens
+                    scheduleForm.style.display = 'none';
+
+                    // Show modal
+                    responseModal.style.display = "flex"; // Modal will be centered and displayed
+                });
+            });
+        }
+
+        // Show the schedule form when "Set Appointment" is clicked
+        setAppointmentBtn.addEventListener('click', () => {
+            scheduleForm.style.display = 'block';
+        });
+
+        // Submit the appointment to Firebase
+        appointmentForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent form from submitting the traditional way
+
+            const date = appointmentDate.value;
+            const time = appointmentTime.value;
+            const message = appointmentMessage.value;
+
+            if (currentStudentId) {
+                await addDoc(collection(db, "scheduledAppointments"), {
+                    studentId: currentStudentId,
+                    date: date,
+                    time: time,
+                    message: message
+                });
+                alert('Appointment scheduled successfully!');
+
+                // Reset form and close modal
+                appointmentForm.reset();
+                responseModal.style.display = "none";
+            }
+        });
+
+        // Close modal when clicking the "x"
+        closeModal.onclick = function () {
+            responseModal.style.display = "none";
+        };
+
+        // Close modal when clicking outside of it
+        window.onclick = function (event) {
+            if (event.target == responseModal) {
+                responseModal.style.display = "none";
+            }
+        };
+
+        // Load appointments when the page loads
+        document.addEventListener("DOMContentLoaded", loadAppointments);
+    </script>
+</body>
+</html>
